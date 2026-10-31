@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Dark Spot - Verification Platform</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        p.subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #2980b9; }
+        .results { margin-top: 30px; display: none; }
+        .card { background: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .card.warning { border-left-color: #e74c3c; background: #fdf2e9; }
+        .card.success { border-left-color: #2ecc71; }
+        h3 { margin-top: 0; }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Digital Dark Spot Analyzer</h1>
+    <p class="subtitle">AI-assisted information cross-verification platform</p>
+
+    <div class="form-group">
+        <label for="query">Enter Topic / Query / Scheme Name:</label>
+        <input type="text" id="query" placeholder="e.g. Post Matric Scholarship eligibility criteria 2026">
+    </div>
+
+    <div class="form-group">
+        <label for="sources">Paste Reference Links / Official Notice Text (Optional):</label>
+        <textarea id="sources" rows="4" placeholder="Paste texts or URLs from different websites here..."></textarea>
+    </div>
+
+    <button onclick="runAnalysis()">Analyze & Verify</button>
+
+    <div id="results" class="results">
+        <div class="card success">
+            <h3>Summary & Status</h3>
+            <p id="res-summary"></p>
+            <strong>Trust & Certainty Score: </strong><span id="res-score"></span>
+        </div>
+
+        <div class="card warning">
+            <h3>Detected Conflicting Claims</h3>
+            <ul id="res-conflicts"></ul>
+        </div>
+
+        <div class="card">
+            <h3>Missing Gaps & Unanswered Questions</h3>
+            <ul id="res-gaps"></ul>
+        </div>
+
+        <div class="card success">
+            <h3>Action Checklist (What to verify next)</h3>
+            <ul id="res-checklist"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+async function runAnalysis() {
+    const query = document.getElementById('query').value;
+    const sources = document.getElementById('sources').value;
+
+    if (!query) {
+        alert('Please enter a query or topic first!');
+        return;
+    }
+
+    const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query, sources: sources })
+    });
+
+    const data = await response.json();
+
+    document.getElementById('res-summary').innerText = data.summary;
+    document.getElementById('res-score').innerText = data.confidence_score;
+
+    const conflictsUl = document.getElementById('res-conflicts');
+    conflictsUl.innerHTML = '';
+    data.conflicts.forEach(item => {
+        let li = document.createElement('li');
+        li.innerText = item;
+        conflictsUl.appendChild(li);
+    });
+
+    const gapsUl = document.getElementById('res-gaps');
+    gapsUl.innerHTML = '';
+    data.missing_gaps.forEach(item => {
+        let li = document.createElement('li');
+        li.innerText = item;
+        gapsUl.appendChild(li);
+    });
+
+    const checklistUl = document.getElementById('res-checklist');
+    checklistUl.innerHTML = '';
+    data.checklist.forEach(item => {
+        let li = document.createElement('li');
+        li.innerText = item;
+        checklistUl.appendChild(li);
+    });
+
+    document.getElementById('results').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
